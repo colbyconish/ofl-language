@@ -2,9 +2,18 @@
 
 #include <fstream>
 #include <cstring>
+#include <set>
 
+#include "char.hpp"
 #include "token.hpp"
 #include "logger.hpp"
+
+enum class ReadMode
+{
+    Letter,
+    Number,
+    Operator
+};
 
 namespace ofl
 {
@@ -23,6 +32,9 @@ namespace ofl
         bool ParseLine(TokenList& list); 
 
     private:
+        static std::set<std::string> KEYWORDS;
+
+        ReadMode _mode = ReadMode::Letter;
         std::ifstream _stream;
 
         size_t _pos;

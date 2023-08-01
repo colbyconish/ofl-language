@@ -60,19 +60,17 @@ int Execute(Parser& parser)
     Executor executor = Executor();
     while(parser.ParseLine(tokens))
     {
+#ifndef OFL_PRODUCTION
+    for(auto& token : tokens)
+        printf("%d:[%s] ", (int) token._type, token._contents.c_str());
+    printf("\n");
+#endif
         Node* root = Lexer::Lex(tokens);
         bool success = executor.Execute(root);
         
         if(!success) break;
         tokens.clear();
-        break; //remkove
     }
-
-#ifndef OFL_PRODUCTION
-    for(auto token : tokens)
-        LOG(LogSeverity::Debug, token._contents << ": " << (int) token._type);
-        
-#endif
 
 #ifndef OFL_PRODUCTION
     

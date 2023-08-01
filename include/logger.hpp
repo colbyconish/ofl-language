@@ -39,32 +39,32 @@ namespace ofl
         Log() { }
         
         template <typename T>
-        Log& operator<<(T& data)
+        Log& operator+(T& data)
         {
             _message += std::to_string(data);
             return *this;
         }
 
         template <typename T>
-        Log& operator<<(T&& data)
+        Log& operator+(T&& data)
         {
             _message += std::to_string(data);
             return *this;
         }
 
-        Log& operator<<(std::string& data)
+        Log& operator+(std::string& data)
         {
            _message += data;
             return *this; 
         }
 
-        Log& operator<<(char* data)
+        Log& operator+(char* data)
         {
            _message += data;
             return *this; 
         }
 
-        Log& operator<<(const char* data)
+        Log& operator+(const char* data)
         {
            _message += data;
             return *this; 
@@ -86,6 +86,6 @@ namespace ofl
     };
 
     #ifndef LOG
-    #define LOG(x,y) Logger::Log(Log() << y, x, std::source_location::current());
+    #define LOG(x,y) Logger::Log(Log() + y, x, std::source_location::current());
     #endif
 }

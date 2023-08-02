@@ -2,7 +2,7 @@
 
 namespace ofl
 {
-    static std::set<std::string> KEYWORDS =
+    std::set<std::string> Parser::KEYWORDS =
     {
         "int",
         "float"
@@ -72,23 +72,25 @@ namespace ofl
                             _mode = ReadMode::Number;
                         buffer += c;
                     }
+                    else if(charIs(CharType::Operator, c))
+                    {
+                        if(buffer.size() == 0)
+                        {
+                            _mode = ReadMode::Operator;
+                        }
+                        buffer += c;
+                    }
                     else if(charIs(CharType::Space, c))
                         if(buffer.size() > 0)
-                        {
-                            list.push_back({TokenType::Identifier, buffer});
-                            buffer.clear();
-                        }
+                            PushIdentifier(list, buffer);
                         else
                             continue;
                     else
+                    {
                         if(buffer.size() > 0)
-                        {
-                            list.push_back({TokenType::Identifier, buffer});
-                            list.push_back({tokenType(c), c}); 
-                            buffer.clear();
-                        }
-                        else
-                            list.push_back({tokenType(c), c}); 
+                            PushIdentifier(list, buffer);
+                        list.push_back(Token::FromCharacter(c)); 
+                    }
                     break;
                 case ReadMode::Number:
                     if(charIs(CharType::Digit, c))
@@ -99,27 +101,79 @@ namespace ofl
                             _mode = ReadMode::Letter;
                         buffer += c;
                     }
+                    else if(charIs(CharType::Operator, c))
+                    {
+                        if(buffer.size() == 0)
+                            _mode = ReadMode::Operator;
+                        buffer += c;
+                    }
                     else if(charIs(CharType::Space, c))
                         if(buffer.size() > 0)
-                        {
-                            list.push_back({TokenType::Literal, buffer});
-                            buffer.clear();
-                        }
+                            PushLiteral(list, buffer);
                         else
                             continue;
                     else
+                    {
                         if(buffer.size() > 0)
-                        {
-                            list.push_back({TokenType::Literal, buffer});
-                            list.push_back({tokenType(c), c}); 
-                            buffer.clear();
-                        }
+                            PushLiteral(list, buffer);
+                        list.push_back(Token::FromCharacter(c)); 
+                    }
+                    break;
+                case ReadMode::Operator:
+                    if(charIs(CharType::Operator, c))
+                        buffer += c;
+                    else if(charIs(CharType::Letter, c))
+                    {
+                        if(buffer.size() > 0)
+                            PushOperator(list, buffer);
+                        _mode = ReadMode::Letter;
+                        buffer = c;
+                    }
+                    else if(charIs(CharType::Digit, c))
+                    {
+                        if(buffer.size() > 0)
+                            PushOperator(list, buffer);
+                        _mode = ReadMode::Number;
+                        buffer = c;
+                    }
+                    else if(charIs(CharType::Space, c))
+                        if(buffer.size() > 0)
+                            PushOperator(list, buffer);
                         else
-                            list.push_back({tokenType(c), c}); 
+                            continue;
+                    else
+                    {
+                        if(buffer.size() > 0)
+                            PushOperator(list, buffer);
+                        list.push_back(Token::FromCharacter(c)); 
+                    } 
                     break;
             }
         }
 
         return true;
+    }
+
+    void Parser::PushIdentifier(TokenList& list, std::string& buffer)
+    {   
+        auto it = KEYWORDS.find(buffer);
+        if(it == KEYWORDS.end())
+            list.push_back(Token::Identifier(buffer));
+        else
+            list.push_back(Token::Identifier(buffer));
+        buffer.clear();
+    }
+
+    void Parser::PushLiteral(TokenList& list, std::string& buffer)
+    {   
+        list.push_back(Token::Literal(buffer));
+        buffer.clear();
+    }
+
+    void Parser::PushOperator(TokenList& list, std::string& buffer)
+    {   
+        Op op = GetOperator(buffer);
+        list.push_back(Token::Operator(op));
+        buffer.clear();
     }
 }

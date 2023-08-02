@@ -49,9 +49,14 @@ namespace ofl
         static const char SEMICOLON = 59;
         static const char COMMA = 44;
 
-
-
         static const char EQUALS = 61;
+        static const char PLUS = 43;
+        static const char MINUS = 45;
+        static const char DIVIDE = 47;
+        static const char MULT = 42;
+        static const char LSHIFT = 60;
+        static const char RSHIFT = 62;
+
     };
 
     inline bool charIs(CharType type, char c)
@@ -104,7 +109,10 @@ namespace ofl
                     return c >= Character::ZERO && c <= Character::NINE;
                     break;
                 case CharType::Operator:
-                    return c == Character::EQUALS; //add * - / + ^ %
+                    return c == Character::EQUALS || 
+                    c == Character::PLUS || c == Character::MINUS ||
+                    c == Character::MULT || c == Character::DIVIDE ||
+                    c == Character::RSHIFT || c == Character::LSHIFT; // ^ %
                 case CharType::Equals:
                     return c == Character::EQUALS;
                     break;

@@ -62,7 +62,7 @@ int Execute(Parser& parser)
     {
 #ifndef OFL_PRODUCTION
     for(auto& token : tokens)
-        printf("%d:[%s] ", (int) token._type, token._contents.c_str());
+        printf("%s ", token.to_string().c_str());
     printf("\n");
 #endif
         Node* root = Lexer::Lex(tokens);

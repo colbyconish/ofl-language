@@ -2,11 +2,16 @@
 
 #include <vector>
 #include <string>
+#include <cstdint>
 
 #include "char.hpp"
+#include "logger.hpp"
+#include "exception.hpp"
 
 namespace ofl
 {
+    typedef uint32_t Op;
+
     struct Token;
     typedef std::vector<Token> TokenList;
 
@@ -40,13 +45,92 @@ namespace ofl
 
     struct Token
     {
-        TokenType _type;
-        std::string _contents;
-        Token(TokenType type, std::string& str)
-            :_type(type), _contents(str) { }
-        Token(TokenType type, char str)
-            :_type(type), _contents("") 
-            { _contents += str; }
-        ~Token() { }
+    public:
+        Token(Token&) = delete;
+        Token(Token&& other)
+            :type(other.type), data(other.data)
+        {
+            other.type = TokenType::Unknown;
+            other.data = nullptr;
+        }
+        static Token Literal(std::string& str)
+        {
+            Token t;
+            t.type = TokenType::Literal;
+            t.data = new std::string(str);
+
+            return std::move(t);
+        }
+        static Token Identifier(std::string& str)
+        {
+            Token t;
+            t.type = TokenType::Identifier;
+            t.data = new std::string(str);
+
+            return std::move(t);
+        }
+        static Token Operator(Op op)
+        {
+            Token t;
+            t.type = TokenType::Operator;
+            *((Op*) &t.data) = op;
+
+            return std::move(t);
+        }
+        static Token FromCharacter(char c)
+        {
+            Token t;
+            t.type = tokenType(c);
+            *((char*) &t.data) = c;
+            return std::move(t);
+        }
+
+        ~Token()
+        {
+            if(type == TokenType::Unknown) return;
+
+            if((type == TokenType::Identifier || type == TokenType::Literal) && data != nullptr)
+                delete (std::string*) data;
+        }
+
+        std::string to_string()
+        {
+            std::string temp;
+            temp += std::to_string((int) type); 
+            temp += ':';
+            temp += '[';
+
+            if((type == TokenType::Identifier || type == TokenType::Literal) && data != nullptr)
+                temp += *((std::string*) data);
+            else if(type == TokenType::Operator)
+                temp += ((const char*) &data);
+            else
+                temp += *((int*) &data);
+            temp += ']';
+            return temp;
+        }
+private:
+    Token() :type(TokenType::Unknown), data(nullptr){ }
+
+    TokenType type = TokenType::Unknown;
+    void* data = nullptr;
     };
+
+    inline Op GetOperator(std::string& buffer)
+    {
+        if(buffer.size() > 3)
+        {
+            std::string message = "Operator too long: " + buffer;
+            throw parser_exception(message);
+        }
+
+        Op op = 0;
+        for(int i = buffer.size()-1;i >= 0;i--)
+        {
+            op <<= sizeof(char)*8;
+            op = op | buffer[i];
+        }
+        
+        return op;
+    }
 }

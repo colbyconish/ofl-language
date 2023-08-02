@@ -31,6 +31,10 @@ namespace ofl
         bool ParseFile(TokenList& list);
         bool ParseLine(TokenList& list); 
 
+        void PushIdentifier(TokenList& list, std::string& buffer);
+        void PushLiteral(TokenList& list, std::string& buffer);
+        void PushOperator(TokenList& list, std::string& buffer);
+
     private:
         static std::set<std::string> KEYWORDS;
 

@@ -54,10 +54,11 @@ namespace ofl
     {
         if(!_ready) return false;
 
-        std::string line;
+        static std::string line;
         if(!std::getline(_stream, line)) return false;
+        line += "\n";
 
-
+        int pos = 0;
         std::string buffer;
         for(auto& c : line)
         {
@@ -74,13 +75,12 @@ namespace ofl
                     }
                     else if(charIs(CharType::Operator, c))
                     {
-                        if(buffer.size() == 0)
-                        {
-                            _mode = ReadMode::Operator;
-                        }
+                        if(buffer.size() > 0)
+                            PushIdentifier(list, buffer);
+                        _mode = ReadMode::Operator;
                         buffer += c;
                     }
-                    else if(charIs(CharType::Space, c))
+                    else if(charIs(CharType::Space, c) || charIs(CharType::NewLine, c))
                         if(buffer.size() > 0)
                             PushIdentifier(list, buffer);
                         else
@@ -90,6 +90,12 @@ namespace ofl
                         if(buffer.size() > 0)
                             PushIdentifier(list, buffer);
                         list.push_back(Token::FromCharacter(c)); 
+                    }
+
+                    if(pos == line.size()-1)
+                    {
+                        if(buffer.size() > 0)
+                            PushIdentifier(list, buffer);
                     }
                     break;
                 case ReadMode::Number:
@@ -103,11 +109,12 @@ namespace ofl
                     }
                     else if(charIs(CharType::Operator, c))
                     {
-                        if(buffer.size() == 0)
-                            _mode = ReadMode::Operator;
+                        if(buffer.size() > 0)
+                            PushLiteral(list, buffer);
+                        _mode = ReadMode::Operator;
                         buffer += c;
                     }
-                    else if(charIs(CharType::Space, c))
+                    else if(charIs(CharType::Space, c) || charIs(CharType::NewLine, c))
                         if(buffer.size() > 0)
                             PushLiteral(list, buffer);
                         else
@@ -117,6 +124,12 @@ namespace ofl
                         if(buffer.size() > 0)
                             PushLiteral(list, buffer);
                         list.push_back(Token::FromCharacter(c)); 
+                    }
+
+                    if(pos == line.size()-1)
+                    {
+                        if(buffer.size() > 0)
+                            PushLiteral(list, buffer);
                     }
                     break;
                 case ReadMode::Operator:
@@ -135,8 +148,9 @@ namespace ofl
                             PushOperator(list, buffer);
                         _mode = ReadMode::Number;
                         buffer = c;
+                        continue;
                     }
-                    else if(charIs(CharType::Space, c))
+                    else if(charIs(CharType::Space, c) || charIs(CharType::NewLine, c))
                         if(buffer.size() > 0)
                             PushOperator(list, buffer);
                         else
@@ -147,10 +161,19 @@ namespace ofl
                             PushOperator(list, buffer);
                         list.push_back(Token::FromCharacter(c)); 
                     } 
+
+                    if(pos == line.size()-1)
+                    {
+                        if(buffer.size() > 0)
+                            PushOperator(list, buffer);
+                    }
                     break;
             }
+
+            pos++;
         }
 
+        if(_stream.peek() == EOF) list.push_back(Token::EndOfFile());
         return true;
     }
 

@@ -56,20 +56,30 @@ int main(int argc, char* argv[])
 int Execute(Parser& parser)
 {
     // Use the parser to read in tokens from the file
-    TokenList tokens;
+    Lexer lexer = Lexer();
     Executor executor = Executor();
-    while(parser.ParseLine(tokens))
+    while(parser.ParseLine(lexer._tokens))
     {
 #ifndef OFL_PRODUCTION
-    for(auto& token : tokens)
-        printf("%s ", token.to_string().c_str());
-    printf("\n");
+        for(auto& token : lexer._tokens)
+            printf("%s ", token.to_string().c_str());
+        printf("\n");
 #endif
-        Node* root = Lexer::Lex(tokens);
-        bool success = executor.Execute(root);
+
+        // Continue if delemiter wasnt found
+        if(lexer._tokens.size() == 0)
+            continue;
+
+        auto& last_token = lexer._tokens[lexer._tokens.size()-1];
+        if(last_token.Type() != TokenType::Delemiter && last_token.Type() != TokenType::ENDOFFILE)
+            continue;
+
+        // Turn tokens into an AST
+        Node root = lexer.Lex(executor.types);
+
+        bool success = executor.Execute(&root);
         
         if(!success) break;
-        tokens.clear();
     }
 
 #ifndef OFL_PRODUCTION

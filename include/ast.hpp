@@ -1,6 +1,7 @@
 #pragma once
 
-#include<vector>
+#include <string>
+#include <vector>
 
 namespace ofl
 {
@@ -10,6 +11,7 @@ namespace ofl
         Sequence,
         Declaration,
         Assignment,
+        Type,
         Variable,
         Literal,
         Equatiuon,
@@ -21,11 +23,19 @@ namespace ofl
     {
         NodeType _type;
         std::vector<Node>* _children;
-        Node(NodeType type = NodeType::Empty):_type(type) { _children = new std::vector<Node>();}
+        void  *_data = nullptr;
+        Node(NodeType type = NodeType::Empty, void *data = nullptr)
+            :_type(type), _data(data), _children(new std::vector<Node>()) { }
         Node(Node&) = delete;
-        Node(Node&& other):_type(other._type), _children(other._children) 
-        { other._children = nullptr; }
-        ~Node() { if(_children != nullptr) delete _children; }
+        Node(Node&& other):_type(other._type), _children(other._children), _data(other._data)
+        {other._children = nullptr; other._data = nullptr;}
+        ~Node() 
+        {
+            if(_children != nullptr) delete _children;
+            if(_data != nullptr) 
+                if(_type == NodeType::Literal || _type == NodeType::Variable)
+                    delete (std::string *) _data;
+        }
     };
 
     class AST

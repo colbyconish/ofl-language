@@ -5,12 +5,11 @@
 #include <cstdint>
 
 #include "char.hpp"
-#include "logger.hpp"
 #include "exception.hpp"
 
 namespace ofl
 {
-    typedef uint32_t Op;
+    typedef uint64_t Op;
 
     struct Token;
     typedef std::vector<Token> TokenList;
@@ -28,6 +27,25 @@ namespace ofl
         Delemiter,
         ENDOFFILE
     };
+
+    inline const char* to_string(TokenType type)
+    {
+        const char* names[] = 
+        {
+            "Unknown",
+            "Square",
+            "Curly",
+            "Paren",
+            "Operator",
+            "Keyword",
+            "Identifier",
+            "Literal",
+            "Delemiter",
+            "ENDOFFILE"
+        };
+
+        return names[(int) type];
+    }
 
     inline TokenType tokenType(char c)
     {
@@ -84,6 +102,12 @@ namespace ofl
             *((char*) &t.data) = c;
             return std::move(t);
         }
+        static Token EndOfFile()
+        {
+            Token t;
+            t.type = TokenType::ENDOFFILE;
+            return std::move(t);
+        }
 
         ~Token()
         {
@@ -104,16 +128,23 @@ namespace ofl
                 temp += *((std::string*) data);
             else if(type == TokenType::Operator)
                 temp += ((const char*) &data);
+            else if(type == TokenType::ENDOFFILE)
+                temp += "EOF";
             else
                 temp += *((int*) &data);
             temp += ']';
             return temp;
         }
+
+        inline TokenType Type() {return type;}
+        inline void* Data() {return data;}
 private:
     Token() :type(TokenType::Unknown), data(nullptr){ }
 
     TokenType type = TokenType::Unknown;
     void* data = nullptr;
+
+    size_t line, col;
     };
 
     inline Op GetOperator(std::string& buffer)
@@ -130,7 +161,7 @@ private:
             op <<= sizeof(char)*8;
             op = op | buffer[i];
         }
-        
+
         return op;
     }
 }

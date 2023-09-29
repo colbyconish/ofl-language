@@ -24,4 +24,16 @@ namespace ofl
     public:
         parser_exception(std::string message) :exception(message) {}
     };
+
+    class lexer_exception : public exception 
+    {
+    public:
+        lexer_exception(std::string message) :exception(message) {}
+    };
+
+     class executor_exception : public exception 
+    {
+    public:
+        executor_exception(std::string message) :exception(message) {}
+    };
 }

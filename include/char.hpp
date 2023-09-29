@@ -22,8 +22,9 @@ namespace ofl
         Operator,
         Equals,
         Delimeter,
-        COMMA,
-        SEMICOLON
+        Comma,
+        SemiColon,
+        NewLine
     };
 
     class Character
@@ -113,8 +114,12 @@ namespace ofl
                     c == Character::PLUS || c == Character::MINUS ||
                     c == Character::MULT || c == Character::DIVIDE ||
                     c == Character::RSHIFT || c == Character::LSHIFT; // ^ %
+                    break;
                 case CharType::Equals:
                     return c == Character::EQUALS;
+                    break;
+                case CharType::NewLine:
+                    return c == Character::NEWLINE;
                     break;
             }
 
@@ -149,9 +154,9 @@ namespace ofl
             else if(c == Character::EQUALS)
                 return CharType::Equals;
             else if(c == Character::COMMA)
-                return CharType::COMMA;
+                return CharType::Comma;
             else if(c == Character::SEMICOLON)
-                return CharType::SEMICOLON;
+                return CharType::SemiColon;
             
             return CharType::Unknown;
         }

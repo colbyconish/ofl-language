@@ -3,6 +3,8 @@
 #include <source_location>
 #include <string>
 
+#include "token.hpp"
+
 namespace ofl
 {
     class Logger;
@@ -37,6 +39,8 @@ namespace ofl
 
     public:
         Log() { }
+
+        const char* c_str(){ return _message.c_str(); }
         
         template <typename T>
         Log& operator+(T& data)
@@ -50,6 +54,12 @@ namespace ofl
         {
             _message += std::to_string(data);
             return *this;
+        }
+
+        Log& operator+(Token& data)
+        {
+           _message += data.to_string();
+            return *this; 
         }
 
         Log& operator+(std::string& data)
@@ -79,6 +89,9 @@ namespace ofl
     public:
         static void Log(Log& log, LogSeverity sev, std::source_location src)
         {
+#ifdef OFL_PRODUCTION
+            if(sev < LogSeverity::Info) return;
+#endif
             printf("[%5s]: %s (%s %d:%d)\n", 
             to_string(sev), log._message.c_str(), 
             src.file_name(), src.line(), src.column());
@@ -87,5 +100,9 @@ namespace ofl
 
     #ifndef LOG
     #define LOG(x,y) Logger::Log(Log() + y, x, std::source_location::current());
+    #endif
+
+    #ifndef MSG
+    #define MSG(x) (Log() + x).c_str()
     #endif
 }

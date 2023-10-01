@@ -24,6 +24,7 @@ map<string, CommandFunc> Commands =
 };
 
 void PrintUsage();
+
 int main(int argc, char* argv[])
 {
     if(argc != 3)
@@ -50,7 +51,7 @@ int main(int argc, char* argv[])
     Parser parser = Parser(filename);
 
     // Invoke command
-    return (*it->second)(parser);
+    return (it->second)(parser);
 }
 
 int Execute(Parser& parser)

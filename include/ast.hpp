@@ -3,6 +3,8 @@
 #include <string>
 #include <vector>
 
+#include "type.hpp"
+
 namespace ofl
 {
     enum class NodeType
@@ -21,20 +23,25 @@ namespace ofl
 
     struct Node
     {
-        NodeType _type;
-        std::vector<Node>* _children;
-        void  *_data = nullptr;
+        NodeType type;
+        std::vector<Node>* children;
+        void *data = nullptr;
         Node(NodeType type = NodeType::Empty, void *data = nullptr)
-            :_type(type), _data(data), _children(new std::vector<Node>()) { }
+            :type(type), data(data), children(new std::vector<Node>()) { }
         Node(Node&) = delete;
-        Node(Node&& other):_type(other._type), _children(other._children), _data(other._data)
-        {other._children = nullptr; other._data = nullptr;}
+        Node(Node&& other):type(other.type), children(other.children), data(other.data)
+        {other.children = nullptr; other.data = nullptr;}
         ~Node() 
         {
-            if(_children != nullptr) delete _children;
-            if(_data != nullptr) 
-                if(_type == NodeType::Literal || _type == NodeType::Variable)
-                    delete (std::string *) _data;
+            if(children != nullptr) delete children;
+            if(data != nullptr) 
+                if(type == NodeType::Literal || type == NodeType::Variable)
+                    delete (std::string *) data;
+                else if(type == NodeType::Type)
+                    delete (TypeInstance *) data;
+                else
+                    std::cout << "Memory leak possible with token type: " << (int)type << std::endl;
+
         }
     };
 

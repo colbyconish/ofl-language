@@ -43,38 +43,38 @@ namespace ofl
         const char* c_str(){ return _message.c_str(); }
         
         template <typename T>
-        Log& operator+(T& data)
+        Log& operator+(const T& data)
         {
             _message += std::to_string(data);
             return *this;
         }
 
         template <typename T>
-        Log& operator+(T&& data)
+        Log& operator+(const T&& data)
         {
             _message += std::to_string(data);
             return *this;
         }
 
-        Log& operator+(Token& data)
+        Log& operator+(const Token& data)
         {
            _message += data.to_string();
             return *this; 
         }
 
-        Log& operator+(std::string& data)
-        {
-           _message += data;
-            return *this; 
-        }
-
-        Log& operator+(char* data)
+        Log& operator+(const std::string& data)
         {
            _message += data;
             return *this; 
         }
 
         Log& operator+(const char* data)
+        {
+           _message += data;
+            return *this; 
+        }
+
+        Log& operator+(char* data)
         {
            _message += data;
             return *this; 

@@ -7,6 +7,7 @@
 #include "char.hpp"
 #include "token.hpp"
 #include "logger.hpp"
+#include "exception.hpp"
 
 enum class ReadMode
 {

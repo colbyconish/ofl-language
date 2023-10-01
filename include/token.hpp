@@ -3,13 +3,16 @@
 #include <vector>
 #include <string>
 #include <cstdint>
+#include <iostream>
 
 #include "char.hpp"
-#include "exception.hpp"
 
 namespace ofl
 {
     typedef uint64_t Op;
+
+    static const Op EQUALS_OP = 0x3D;
+    static const Op COLON_OP = 0x3A;
 
     struct Token;
     typedef std::vector<Token> TokenList;
@@ -79,10 +82,10 @@ namespace ofl
 
             return std::move(t);
         }
-        static Token Identifier(std::string& str)
+        static Token Identifier(std::string& str, bool keyword = false)
         {
             Token t;
-            t.type = TokenType::Identifier;
+            t.type = keyword ? TokenType::Keyword : TokenType::Identifier;
             t.data = new std::string(str);
 
             return std::move(t);
@@ -111,20 +114,23 @@ namespace ofl
 
         ~Token()
         {
-            if(type == TokenType::Unknown) return;
+            if(type == TokenType::Unknown || type == TokenType::ENDOFFILE) return;
+            if(type == TokenType::Operator || type == TokenType::Delemiter) return;
 
-            if((type == TokenType::Identifier || type == TokenType::Literal) && data != nullptr)
+            if((type == TokenType::Identifier || type == TokenType::Literal || type == TokenType::Keyword) && data != nullptr)
                 delete (std::string*) data;
+            else
+                std::cout << "Memory leak possible with token type: " << (int)type << std::endl;
         }
 
-        std::string to_string()
+        std::string to_string() const
         {
             std::string temp;
             temp += std::to_string((int) type); 
             temp += ':';
             temp += '[';
 
-            if((type == TokenType::Identifier || type == TokenType::Literal) && data != nullptr)
+            if((type == TokenType::Identifier || type == TokenType::Literal || type == TokenType::Keyword) && data != nullptr)
                 temp += *((std::string*) data);
             else if(type == TokenType::Operator)
                 temp += ((const char*) &data);
@@ -146,22 +152,4 @@ private:
 
     size_t line, col;
     };
-
-    inline Op GetOperator(std::string& buffer)
-    {
-        if(buffer.size() > 3)
-        {
-            std::string message = "Operator too long: " + buffer;
-            throw parser_exception(message);
-        }
-
-        Op op = 0;
-        for(int i = buffer.size()-1;i >= 0;i--)
-        {
-            op <<= sizeof(char)*8;
-            op = op | buffer[i];
-        }
-
-        return op;
-    }
 }

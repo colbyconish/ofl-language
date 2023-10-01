@@ -2,11 +2,6 @@
 
 namespace ofl
 {
-    std::set<std::string> Lexer::keywords = 
-    {
-        "print"
-    };
-
     Lexer::Lexer() { }
 
     size_t Lexer::checkForFunctionCall(const std::string &name, TokenList &tokens, Node* parent, size_t pos)
@@ -20,70 +15,99 @@ namespace ofl
         if(tokens[pos+2].Type() != TokenType::Delemiter)
             throw lexer_exception(MSG("Expected Delemiter but found: " + tokens[pos+2]));
         else if(*((char*) &ch) != ';')
-            throw lexer_exception(MSG("Expected ';' but found: '" + (char*) &ch + "'"));
+            throw lexer_exception(MSG("Expected ';' but found: '" + (char*) (&ch) + "'"));
 
         // Create invocation node
-        auto& node = parent->_children->emplace_back(NodeType::Invocation);
+        auto& node = parent->children->emplace_back(NodeType::Invocation);
 
-        auto& func = node._children->emplace_back(NodeType::Variable);
-        func._data = new std::string(name);
+        auto& func = node.children->emplace_back(NodeType::Variable);
+        func.data = new std::string(name);
 
-        auto& arg = node._children->emplace_back(NodeType::Variable);
-        arg._data = new std::string(*(std::string *)(tokens[pos+1].Data()));
+        auto& arg = node.children->emplace_back(NodeType::Variable);
+        arg.data = new std::string(*(std::string *)(tokens[pos+1].Data()));
 
         return count;
     }
 
-    size_t Lexer::checkForAssignment(TypeInfo &type, TokenList &tokens, Node* parent, size_t pos)
+    size_t Lexer::checkForAssignment(TypeMap::iterator &type_it, TokenList &tokens, Node* parent, size_t pos)
     {
-        static std::string name;
-        static Token* value;
+        std::string variation = type_it->second.Default()->first;
+        std::string name;
+        Token* value;
 
-        // Check for assignment name
-        if(tokens[pos+1].Type() == TokenType::Identifier)
-            name = *((std::string*) tokens[pos+1].Data());
-        else
-            throw lexer_exception(MSG("Expected indentifier but found: " + tokens[pos+1]));
+        size_t count = 1;
+
+        // Check for type variation sequence
+        if(tokens[pos+count].Type() == TokenType::Operator)
+        {
+            // Verify that the operator is the variator operator ':'
+            auto op = tokens[pos+count].Data();
+            if(op != (void*) COLON_OP)
+                throw lexer_exception(MSG("Expected ':' but found: '" + (char*) &op + "'"));
+
+            // Check for variation string
+            if(tokens[pos+count+1].Type() == TokenType::Identifier || tokens[pos+count+1].Type() == TokenType::Literal)
+                variation = *((std::string*) tokens[pos+count+1].Data());
+            else
+                throw lexer_exception(MSG("Expected indentifier or operator but found: "), tokens[pos+count+1]);  
+
+            // Verify that variation exists
+            if(!type_it->second.HasVariation(variation))
+                    throw lexer_exception(MSG("Received undefined variation of type '" + type_it->first + "': " + variation));
+
+            count+=2;
+        }
         
+        // Check for assignment name
+        if(tokens[pos+count].Type() == TokenType::Identifier)
+        {
+            name = *((std::string*) tokens[pos+count].Data());
+            count++;
+        }  
+        else
+            throw lexer_exception(MSG("Expected indentifier or operator but found: "), tokens[pos+count]);
+
         // Check for assignment operator
-        auto op = tokens[pos+2].Data();
-        if(tokens[pos+2].Type() != TokenType::Operator)
-            throw lexer_exception(MSG("Expected Operator but found: " + tokens[pos+2]));
-        else if(op != (void*) Lexer::EQUALS_OP)
+        auto op = tokens[pos+count].Data();
+        if(tokens[pos+count].Type() != TokenType::Operator)
+            throw lexer_exception(MSG("Expected Operator but found: " + tokens[pos+count]));
+        else if(op != (void*) EQUALS_OP)
             throw lexer_exception(MSG("Expected '=' but found: '" + (char*) &op + "'"));
+        count++;
         
         // Check for value
-        if(tokens[pos+3].Type() == TokenType::Literal)
-            value = &tokens[pos+3];
+        if(tokens[pos+count].Type() == TokenType::Literal)
+            value = &tokens[pos+count];
         else
-            throw lexer_exception(MSG("Expected Literal but found: " + tokens[pos+3]));
+            throw lexer_exception(MSG("Expected Literal but found: " + tokens[pos+count]));
 
-        if(!type.Accepts(value->Type()))
+        if(!type_it->second.Accepts(value->Type()))
             throw lexer_exception(MSG("Wrong value in assignment: " + *((std::string*)value->Data())));
-        
+        count++;
+
         // Check for semicolon
-        void* ch = tokens[pos+4].Data();
-        if(tokens[pos+4].Type() != TokenType::Delemiter)
-            throw lexer_exception(MSG("Expected Delemiter but found: " + tokens[pos+4]));
+        void* ch = tokens[pos+count].Data();
+        if(tokens[pos+count].Type() != TokenType::Delemiter)
+            throw lexer_exception(MSG("Expected Delemiter but found: " + tokens[pos+count]));
         else if(*((char*) &ch) != ';')
             throw lexer_exception(MSG("Expected ';' but found: '" + (char*) &ch + "'"));
 
         // Create assignment node
-        auto& node = parent->_children->emplace_back(NodeType::Declaration);
+        auto& node = parent->children->emplace_back(NodeType::Declaration);
 
-        auto& typ = node._children->emplace_back(NodeType::Type);
-        typ._data = &type;
+        auto& typ = node.children->emplace_back(NodeType::Type);
+        typ.data = new TypeInstance(type_it->first, type_it->second.GetVariation(variation)->first);
 
-        auto& var = node._children->emplace_back(NodeType::Variable);
-        var._data = new std::string(name);
+        auto& var = node.children->emplace_back(NodeType::Variable);
+        var.data = new std::string(name);
 
-        auto& val = node._children->emplace_back(NodeType::Literal);
-        val._data = new std::string(*(std::string*) value->Data());
+        auto& val = node.children->emplace_back(NodeType::Literal);
+        val.data = new std::string(*(std::string*) value->Data());
         
-        return 4;
+        return count;
     }
 
-    Node Lexer::Lex(std::map<std::string, TypeInfo>& types)
+    Node Lexer::Lex(TypeMap& types)
     {
         Node ast = Node(NodeType::Sequence);
 
@@ -100,21 +124,19 @@ namespace ofl
                     auto it_t = types.find(*((std::string*) token.Data()));
                     if(it_t != types.end())
                     {
-                        i += checkForAssignment(it_t->second, _tokens, &ast, i);
-                        continue;
-                    }
-
-                    // Check if identifier is a keyword
-                    auto it_k = keywords.find(*((std::string*) token.Data()));
-                    if(it_k != keywords.end())
-                    {
-                        i += checkForFunctionCall(*it_k, _tokens, &ast, i);
+                        i += checkForAssignment(it_t, _tokens, &ast, i);
                         continue;
                     }
 
                     // Identifier is a variable
 
                     throw lexer_exception(MSG("Undefined indentifier: " + token));
+                    break;
+                }
+                case TokenType::Keyword:
+                {
+                    // Check if keyword is function
+                    i += checkForFunctionCall(*(std::string*) token.Data(), _tokens, &ast, i);
                     break;
                 }
                 default:

@@ -24,6 +24,7 @@ namespace ofl
         Delimeter,
         Comma,
         SemiColon,
+        Colon,
         NewLine
     };
 
@@ -49,6 +50,7 @@ namespace ofl
 
         static const char SEMICOLON = 59;
         static const char COMMA = 44;
+        static const char COLON = 58;
 
         static const char EQUALS = 61;
         static const char PLUS = 43;
@@ -110,7 +112,7 @@ namespace ofl
                     return c >= Character::ZERO && c <= Character::NINE;
                     break;
                 case CharType::Operator:
-                    return c == Character::EQUALS || 
+                    return c == Character::EQUALS || c == Character::COLON ||
                     c == Character::PLUS || c == Character::MINUS ||
                     c == Character::MULT || c == Character::DIVIDE ||
                     c == Character::RSHIFT || c == Character::LSHIFT; // ^ %
@@ -153,6 +155,8 @@ namespace ofl
                 return CharType::RightCurly;
             else if(c == Character::EQUALS)
                 return CharType::Equals;
+            else if(c == Character::COLON)
+                return CharType::Colon;
             else if(c == Character::COMMA)
                 return CharType::Comma;
             else if(c == Character::SEMICOLON)

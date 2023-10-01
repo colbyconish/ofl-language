@@ -1,5 +1,7 @@
 #pragma once
 #include <map>
+#include <string>
+#include <iostream>
 
 #include "type.hpp"
 #include "ast.hpp"
@@ -10,8 +12,9 @@ namespace ofl
 {
     struct Memory
     {
-        void* start = nullptr;
-        void* end = nullptr;
+        void *data = nullptr;
+        void *start = nullptr;
+        void *end = nullptr;
         size_t size = 0;
 
         //Memory() = delete;
@@ -24,24 +27,44 @@ namespace ofl
 
     struct Variable
     {
-        TypeInfo *type;
+        TypeInstance type;
         void *value;
     };
 
     class Executor
     {
     public:
-        static void setValue(TypeInfo *type, void *ptr, const char *value);
+        static void setValue(TypeMap::iterator &type, VariationMap::iterator &variation, void *ptr, const char *value);
         Executor();
         ~Executor();
 
         bool Execute(Node* root);
 
         std::map<std::string, Variable> variables;
-        std::map<std::string, TypeInfo> types = 
+        TypeMap types = 
         {
-            {"int", {"int", 4, {TokenType::Literal}}},
-            {"float", {"float", 4, {TokenType::Literal}}}
+            {"int", 
+                {
+                    "int",
+                    "32",
+                    {
+                        {"32", 4},
+                        {"64", 8}
+                    },
+                    {TokenType::Literal}
+                }
+            },
+            {"dec", 
+                {
+                    "dec",
+                    "32",
+                    {
+                        {"32", 4},
+                        {"64", 8}
+                    },
+                    {TokenType::Literal}
+                }
+            }
         };
 
     private:

@@ -4,8 +4,18 @@ namespace ofl
 {
     std::set<std::string> Parser::KEYWORDS =
     {
-        "int",
-        "float"
+        "print",
+        "exit",
+        "when",
+        "set",
+        "if",
+        "for",
+        "while",
+        "break",
+        "continue",
+        "using",
+        "define",
+        "invent"
     };
 
     Parser::Parser(const char* infile)
@@ -183,7 +193,7 @@ namespace ofl
         if(it == KEYWORDS.end())
             list.push_back(Token::Identifier(buffer));
         else
-            list.push_back(Token::Identifier(buffer));
+            list.push_back(Token::Identifier(buffer, true));
         buffer.clear();
     }
 
@@ -191,6 +201,24 @@ namespace ofl
     {   
         list.push_back(Token::Literal(buffer));
         buffer.clear();
+    }
+
+    inline Op GetOperator(std::string& buffer)
+    {
+        if(buffer.size() > 3)
+        {
+            std::string message = "Operator too long: " + buffer;
+            throw parser_exception(message);
+        }
+
+        Op op = 0;
+        for(int i = buffer.size()-1;i >= 0;i--)
+        {
+            op <<= sizeof(char)*8;
+            op = op | buffer[i];
+        }
+
+        return op;
     }
 
     void Parser::PushOperator(TokenList& list, std::string& buffer)

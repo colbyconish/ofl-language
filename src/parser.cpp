@@ -79,7 +79,7 @@ namespace ofl
         line += "\n";
 
         int pos = 0;
-        std::string buffer;
+        static std::string buffer;
         for(auto& c : line)
         {
             switch(_mode)
@@ -105,17 +105,19 @@ namespace ofl
                             PushIdentifier(list, buffer);
                         else
                             continue;
+                    else if(charIs(CharType::DoubleQuote, c))
+                    {
+                        _mode = ReadMode::String;
+                        if(buffer.size() > 0)
+                            PushIdentifier(list, buffer);
+                        else
+                            continue;
+                    }
                     else
                     {
                         if(buffer.size() > 0)
                             PushIdentifier(list, buffer);
                         list.push_back(Token::FromCharacter(c)); 
-                    }
-
-                    if(pos == line.size()-1)
-                    {
-                        if(buffer.size() > 0)
-                            PushIdentifier(list, buffer);
                     }
                     break;
                 case ReadMode::Number:
@@ -139,17 +141,19 @@ namespace ofl
                             PushLiteral(list, buffer);
                         else
                             continue;
+                    else if(charIs(CharType::DoubleQuote, c))
+                    {
+                        _mode = ReadMode::String;
+                        if(buffer.size() > 0)
+                            PushLiteral(list, buffer);
+                        else
+                            continue;
+                    }
                     else
                     {
                         if(buffer.size() > 0)
                             PushLiteral(list, buffer);
                         list.push_back(Token::FromCharacter(c)); 
-                    }
-
-                    if(pos == line.size()-1)
-                    {
-                        if(buffer.size() > 0)
-                            PushLiteral(list, buffer);
                     }
                     break;
                 case ReadMode::Operator:
@@ -175,6 +179,14 @@ namespace ofl
                             PushOperator(list, buffer);
                         else
                             continue;
+                    else if(charIs(CharType::DoubleQuote, c))
+                    {
+                        _mode = ReadMode::String;
+                        if(buffer.size() > 0)
+                            PushOperator(list, buffer);
+                        else
+                            continue;
+                    }
                     else
                     {
                         if(buffer.size() > 0)
@@ -188,6 +200,17 @@ namespace ofl
                             PushOperator(list, buffer);
                     }
                     break;
+                case ReadMode::String:
+                    if(charIs(CharType::DoubleQuote, c))
+                    {
+                        if(buffer.size() > 0)
+                            PushString(list, buffer);
+                        _mode = ReadMode::Letter;
+                    }
+                    else if(charIs(CharType::NewLine, c))
+                        continue;
+                    else
+                       buffer += c;
             }
 
             pos++;
@@ -195,6 +218,12 @@ namespace ofl
 
         if(_stream.peek() == EOF) list.push_back(Token::EndOfFile());
         return true;
+    }
+
+    void Parser::PushString(TokenList& list, std::string& buffer)
+    {
+        list.push_back(Token::String(buffer));
+        buffer.clear();
     }
 
     void Parser::PushIdentifier(TokenList& list, std::string& buffer)
@@ -209,7 +238,7 @@ namespace ofl
 
     void Parser::PushLiteral(TokenList& list, std::string& buffer)
     {   
-        list.push_back(Token::Literal(buffer));
+        list.push_back(Token::Number(buffer));
         buffer.clear();
     }
 

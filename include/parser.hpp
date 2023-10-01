@@ -13,7 +13,8 @@ enum class ReadMode
 {
     Letter,
     Number,
-    Operator
+    Operator,
+    String
 };
 
 namespace ofl
@@ -32,6 +33,7 @@ namespace ofl
         bool ParseFile(TokenList& list);
         bool ParseLine(TokenList& list); 
 
+        void PushString(TokenList& list, std::string& buffer);
         void PushIdentifier(TokenList& list, std::string& buffer);
         void PushLiteral(TokenList& list, std::string& buffer);
         void PushOperator(TokenList& list, std::string& buffer);

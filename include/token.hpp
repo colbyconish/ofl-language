@@ -76,7 +76,15 @@ namespace ofl
             other.type = TokenType::Unknown;
             other.data = nullptr;
         }
-        static Token Literal(std::string& str)
+        static Token String(std::string& str)
+        {
+            Token t;
+            t.type = TokenType::StringLiteral;
+            t.data = new std::string(str);
+
+            return std::move(t);
+        }
+        static Token Number(std::string& str)
         {
             Token t;
             t.type = TokenType::NumberLiteral;
@@ -119,7 +127,8 @@ namespace ofl
             if(type == TokenType::Unknown || type == TokenType::ENDOFFILE) return;
             if(type == TokenType::Operator || type == TokenType::Delemiter) return;
 
-            if((type == TokenType::Identifier || type == TokenType::NumberLiteral || type == TokenType::Keyword) && data != nullptr)
+            if((type == TokenType::Identifier || type == TokenType::NumberLiteral 
+            || type == TokenType::Keyword || type == TokenType::StringLiteral) && data != nullptr)
                 delete (std::string*) data;
             else
                 std::cout << "Memory leak possible with token type: " << (int)type << std::endl;
@@ -136,7 +145,8 @@ namespace ofl
             temp += ofl::to_string(type);
             temp += " (";
 
-            if((type == TokenType::Identifier || type == TokenType::NumberLiteral || type == TokenType::Keyword) && data != nullptr)
+            if((type == TokenType::Identifier || type == TokenType::NumberLiteral 
+            || type == TokenType::Keyword || type == TokenType::StringLiteral) && data != nullptr)
                 temp += *((std::string*) data);
             else if(type == TokenType::Operator)
                 temp += ((const char*) &data);

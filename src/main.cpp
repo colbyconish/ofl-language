@@ -61,11 +61,11 @@ int Execute(Parser& parser)
     Executor executor = Executor();
     while(parser.ParseLine(lexer._tokens))
     {
-#ifndef OFL_PRODUCTION
+        /*
         for(auto& token : lexer._tokens)
             printf("%s ", token.to_string().c_str());
         printf("\n");
-#endif
+        */
 
         // Continue if delemiter wasnt found
         if(lexer._tokens.size() == 0)

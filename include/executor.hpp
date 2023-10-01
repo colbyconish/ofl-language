@@ -43,9 +43,9 @@ namespace ofl
         TypeMap types = 
         {
             {
-                "int", 
+                "int",
                 {
-                    "int",
+                    "integer",
                     "32",
                     {
                         {"32", sizeof(int32_t)},
@@ -57,9 +57,9 @@ namespace ofl
                 }
             },
             {
-                "dec", 
+                "dec",
                 {
-                    "dec",
+                    "decemial",
                     "32",
                     {
                         {"32", sizeof(float)},
@@ -71,9 +71,9 @@ namespace ofl
                 }
             },
             {
-                "bin", 
+                "bin",
                 {
-                    "bool",
+                    "binary",
                     "default",
                     {
                         {"default", sizeof(int8_t)}
@@ -84,15 +84,16 @@ namespace ofl
                 }
             },
             {
-                "str", 
+                "str",
                 {
-                    "str",
+                    "string",
                     "default",
                     {
-                        {"default", sizeof(void*)},
+                        {"default", sizeof(std::string*)},
                     },
                     {TokenType::StringLiteral},
-                    &assign_string
+                    &assign_string,
+                    &print_string
                 }
             }
         };

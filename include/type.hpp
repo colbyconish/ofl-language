@@ -130,7 +130,7 @@ namespace ofl
 
     inline void assign_string(TypeMap_it& type, VariationMap_it& variation, void *ptr, void *value)
     {
-
+        *((std::string**)ptr) = new std::string((const char *) value);
     }
 
     inline void assign_default(TypeMap_it& type, VariationMap_it& variation, void *ptr, void *value)
@@ -163,44 +163,13 @@ namespace ofl
             std::cout << *(double*) ptr << std::endl;
     }
 
+    inline void print_string(TypeMap_it& type, VariationMap_it& variation, void *ptr)
+    {
+        std::cout << (*(std::string **) ptr)->c_str() << std::endl;
+    }
+
     inline void print_default(TypeMap_it& type, VariationMap_it& variation, void *ptr)
     {
         std::cout << "<" << type->first << ":" << variation->first << "@" << ptr << ">" << std::endl;
     }
-    /**
-     * @brief void Executor::setValue(TypeMap_it &type, VariationMap_it &variation, void *ptr, const char *value)
-    {
-        if(type->first == "int")
-        {
-            if(variation->second.size == 4)
-                *((int32_t*)ptr) = atoi(value);
-            else if(variation->second.size == 8)
-                *((int64_t*)ptr) = _atoi64(value);
-        }
-        else if(type->first == "dec")
-        {
-            if(variation->second.size == 4)
-                *((float*)ptr) = (float) atof(value);
-            else if(variation->second.size == 8)
-                *((double*)ptr) = atof(value);
-        }
-        else if(type->first == "bin")
-        {
-            // -1 = false; -2 = no; 1 = true; 2 = yes;
-            if(strcmp(value, "true") == 0)
-                *((int8_t*)ptr) = 1;
-            else if(strcmp(value, "yes") == 0)
-                *((int8_t*)ptr) = 2;
-            else if(strcmp(value, "false") == 0)
-                *((int8_t*)ptr) = -1;
-            else if(strcmp(value, "no") == 0)
-                *((int8_t*)ptr) = -2;
-            else 
-                *((int8_t*)ptr) = (_atoi64(value) > 0 ? 1 : -1);
-        }
-        else
-            throw executor_exception(MSG("Undefined type name: " + type->first));
-    }
-     * 
-     */
 }

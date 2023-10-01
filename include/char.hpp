@@ -25,6 +25,9 @@ namespace ofl
         Comma,
         SemiColon,
         Colon,
+        Quote,
+        SingleQuote,
+        DoubleQuote,
         NewLine
     };
 
@@ -40,6 +43,9 @@ namespace ofl
 
         static const char SPACE = 32;
         static const char NEWLINE = 10;
+
+        static const char SINGLEQUOTE = 39;
+        static const char DOUBLEQUOTE = 34;
 
         static const char LEFTPAREN = 40;
         static const char RIGHTPAREN = 41;
@@ -123,6 +129,15 @@ namespace ofl
                 case CharType::NewLine:
                     return c == Character::NEWLINE;
                     break;
+                case CharType::Quote:
+                    return c == Character::SINGLEQUOTE || c == Character::DOUBLEQUOTE;
+                    break;
+                case CharType::SingleQuote:
+                    return c == Character::SINGLEQUOTE;
+                    break;
+                case CharType::DoubleQuote:
+                    return c == Character::DOUBLEQUOTE;
+                    break;
             }
 
             return false;
@@ -161,6 +176,10 @@ namespace ofl
                 return CharType::Comma;
             else if(c == Character::SEMICOLON)
                 return CharType::SemiColon;
+            else if(c == Character::SINGLEQUOTE)
+                return CharType::SingleQuote;
+            else if(c == Character::DOUBLEQUOTE)
+                return CharType::DoubleQuote;
             
             return CharType::Unknown;
         }

@@ -42,7 +42,7 @@ namespace ofl
                     (*type_it->second.assign)(type_it, variation_it, ptr, (void *) value->c_str());
 
                     // Save variable
-                    auto new_it = variables.emplace(*name, Variable{*type, ptr});
+                    variables.emplace(*name, Variable{*type, ptr});
                     break;
                 }
                 case NodeType::Invocation:

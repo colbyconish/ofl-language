@@ -1,41 +1,57 @@
-CXX= g++
-LD = g++
+# Project Configuration
+EXE ?= ofc
+SRC_DIR ?= src
+BUILD_DIR ?= build
+LIB_DIR ?= lib
+INC_DIR ?= include
+TEST_DIR ?= tests
 
-SRC=src
-BIN=bin
-OBJ=obj
-LIB=lib
-EXE=ofc
-INC=include
+TEST_PRE ?= test_
 
-DEV=debug
-PROD=release
-PRODFLAG=OFL_PRODUCTION
+# C++ configuration
+PRODFLAG=-DOFL_PRODUCTION
+override CPPFLAGS += -MMD -MP
 
-CXXFLAGS= $(addprefix -I, $(INC)) --std=c++20 -O0 -g3
-LDFLAGS=-L$(LIB) -LC:/"Third Party Libraries"/lib -lswe
+OPTFLAGS ?= -g3 -O0#-Ofast -flto 
+override CXXFLAGS += --std=c++20 $(addprefix -I,$(INC_DIR)) $(OPTFLAGS)
 
-$(OBJ)/%.o: $(SRC)/%.cpp
-	$(CXX) $(CXXFLAGS) -c $< -o $@
+override LIBS := $(shell dir $(LIB_DIR)/*)
 
-all: $(OBJ)/main.o $(OBJ)/lexer.o $(OBJ)/parser.o $(OBJ)/assembler.o $(OBJ)/executor.o
-	$(LD) $(LDFLAGS) $^ -o $(BIN)/$(DEV)/$(EXE) 
+override LDLIBS +=-L$(LIB_DIR) -LC:/"Third Party Libraries"/lib 
+override LDFLAGS +=-lswe
 
-$(OBJ)/%_prod.o: $(SRC)/%.cpp
-	$(CXX) $(CXXFLAGS) -D$(PRODFLAG) -c $< -o $@
+# Static Configuration
+override SRCS := $(shell dir $(SRC_DIR)/*.cpp)
+override OBJS := $(patsubst %.cpp,$(BUILD_DIR)/%.o,$(SRCS))
+override TEST_SRCS := $(shell dir $(TEST_DIR)/*.test)
+override TEST_OBJS := $(patsubst %.cpp,$(BUILD_DIR)/%.o,$(SRCS))
+override MAIN_TEST_OBJS := $(patsubst $(BUILD_DIR)/%.o,$(BUILD_DIR)/$(TEST_PRE)%.o,$(OBJS))
+override TARGET := $(BUILD_DIR)/$(EXE)
+override TEST_TARGET := $(BUILD_DIR)/$(TEST_PRE)$(EXE)
+override DEPS := $(OBJS:.o=.d)
 
-prod: $(OBJ)/main_prod.o $(OBJ)/lexer_prod.o $(OBJ)/parser_prod.o $(OBJ)/assembler_prod.o $(OBJ)/executor_prod.o
-	$(LD) $(LDFLAGS) $^ -o $(BIN)/$(PROD)/$(EXE)
+$(TARGET): $(OBJS)
+	echo $(OBJS)
+	@mkdir -p $(@D)
+	$(CXX) $(LDLIBS) $(LDFLAGS) $^ -o $@
 
-run: all
-	./$(BIN)/$(DEV)/$(EXE) run main.xx
+$(TEST_TARGET):
+
+$(OBJS): $(BUILD_DIR)/%.o: %.cpp
+	@mkdir -p $(@D)
+	$(CXX) $(CXXFLAGS) $(PRODFLAG) $(CPPFLAGS) -c $< -o $@
+
+.PHONY: run
+run: $(TARGET)
+	$(TARGET) run example.xx
 
 .PHONY: debug
-debug: all
-	gdb bin/debug/ofc.exe -ex "b main" -ex "layout src" -ex "r run main.xx" 
+debug: $(TARGET)
+	gdb $(TARGET) -ex "b main" -ex "layout src" -ex "r run example.xx" 
 
+.PHONY: clean
 clean:
-	@rm -rf $(OBJ)/*
-	@rm -rf $(BIN)/$(DEV)/*
-	@rm -rf $(BIN)/$(PROD)/*
+	@rm -rf $(BUILD_DIR)
+
+-include $(DEPS)
 

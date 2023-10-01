@@ -1,0 +1,5 @@
+int v1 = 22;
+dec:32 v2 = 915;
+
+print v1;
+print v2;

@@ -8,6 +8,7 @@ namespace ofl
         "exit",
         "when",
         "set",
+        "unset",
         "if",
         "for",
         "while",
@@ -15,7 +16,16 @@ namespace ofl
         "continue",
         "using",
         "define",
-        "invent"
+        "invent",
+        "true",
+        "false",
+        "yes",
+        "no",
+        "is",
+        "and",
+        "or",
+        "xor",
+        "void"
     };
 
     Parser::Parser(const char* infile)

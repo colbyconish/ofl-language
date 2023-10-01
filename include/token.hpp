@@ -26,7 +26,8 @@ namespace ofl
         Operator,
         Keyword,
         Identifier,
-        Literal,
+        NumberLiteral,
+        StringLiteral,
         Delemiter,
         ENDOFFILE
     };
@@ -42,7 +43,8 @@ namespace ofl
             "Operator",
             "Keyword",
             "Identifier",
-            "Literal",
+            "Number Literal",
+            "String Literal",
             "Delemiter",
             "ENDOFFILE"
         };
@@ -77,7 +79,7 @@ namespace ofl
         static Token Literal(std::string& str)
         {
             Token t;
-            t.type = TokenType::Literal;
+            t.type = TokenType::NumberLiteral;
             t.data = new std::string(str);
 
             return std::move(t);
@@ -117,20 +119,24 @@ namespace ofl
             if(type == TokenType::Unknown || type == TokenType::ENDOFFILE) return;
             if(type == TokenType::Operator || type == TokenType::Delemiter) return;
 
-            if((type == TokenType::Identifier || type == TokenType::Literal || type == TokenType::Keyword) && data != nullptr)
+            if((type == TokenType::Identifier || type == TokenType::NumberLiteral || type == TokenType::Keyword) && data != nullptr)
                 delete (std::string*) data;
             else
                 std::cout << "Memory leak possible with token type: " << (int)type << std::endl;
         }
 
+        const char *type_name()
+        {
+            return ofl::to_string(type);
+        }
+
         std::string to_string() const
         {
             std::string temp;
-            temp += std::to_string((int) type); 
-            temp += ':';
-            temp += '[';
+            temp += ofl::to_string(type);
+            temp += " (";
 
-            if((type == TokenType::Identifier || type == TokenType::Literal || type == TokenType::Keyword) && data != nullptr)
+            if((type == TokenType::Identifier || type == TokenType::NumberLiteral || type == TokenType::Keyword) && data != nullptr)
                 temp += *((std::string*) data);
             else if(type == TokenType::Operator)
                 temp += ((const char*) &data);
@@ -138,7 +144,7 @@ namespace ofl
                 temp += "EOF";
             else
                 temp += *((int*) &data);
-            temp += ']';
+            temp += ')';
             return temp;
         }
 

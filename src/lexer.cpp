@@ -31,7 +31,7 @@ namespace ofl
 
     size_t Lexer::checkForAssignment(TypeMap::iterator &type_it, TokenList &tokens, Node* parent, size_t pos)
     {
-        std::string variation = type_it->second.Default()->first;
+        std::string variation = type_it->second.DefaultVariation()->first;
         std::string name;
         Token* value;
 
@@ -46,7 +46,7 @@ namespace ofl
                 throw lexer_exception(MSG("Expected ':' but found: '" + (char*) &op + "'"));
 
             // Check for variation string
-            if(tokens[pos+count+1].Type() == TokenType::Identifier || tokens[pos+count+1].Type() == TokenType::Literal)
+            if(tokens[pos+count+1].Type() == TokenType::Identifier || tokens[pos+count+1].Type() == TokenType::NumberLiteral)
                 variation = *((std::string*) tokens[pos+count+1].Data());
             else
                 throw lexer_exception(MSG("Expected indentifier or operator but found: "), tokens[pos+count+1]);  
@@ -60,12 +60,10 @@ namespace ofl
         
         // Check for assignment name
         if(tokens[pos+count].Type() == TokenType::Identifier)
-        {
             name = *((std::string*) tokens[pos+count].Data());
-            count++;
-        }  
         else
             throw lexer_exception(MSG("Expected indentifier or operator but found: "), tokens[pos+count]);
+        count++;
 
         // Check for assignment operator
         auto op = tokens[pos+count].Data();
@@ -76,13 +74,10 @@ namespace ofl
         count++;
         
         // Check for value
-        if(tokens[pos+count].Type() == TokenType::Literal)
+        if(type_it->second.Accepts(tokens[pos+count].Type()))
             value = &tokens[pos+count];
         else
-            throw lexer_exception(MSG("Expected Literal but found: " + tokens[pos+count]));
-
-        if(!type_it->second.Accepts(value->Type()))
-            throw lexer_exception(MSG("Wrong value in assignment: " + *((std::string*)value->Data())));
+            throw lexer_exception(MSG("Expected '" + type_it->second.AcceptString() + "' but found: " + tokens[pos+count]));
         count++;
 
         // Check for semicolon

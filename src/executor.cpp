@@ -13,26 +13,6 @@ namespace ofl
 
     }
 
-    void Executor::setValue(TypeMap::iterator &type, VariationMap::iterator &variation, void *ptr, const char *value)
-    {
-        if(type->first == "int")
-        {
-            if(variation->second.size == 4)
-                *((int32_t*)ptr) = atoi(value);
-            else if(variation->second.size == 8)
-                *((int64_t*)ptr) = _atoi64(value);
-        }
-        else if(type->first == "dec")
-        {
-            if(variation->second.size == 4)
-                *((float*)ptr) = (float) atof(value);
-            else if(variation->second.size == 8)
-                *((double*)ptr) = atof(value);
-        }
-        else
-            throw executor_exception(MSG("Undefined type name: " + type->first));
-    }
-
     bool Executor::Execute(Node* root)
     {
         for(auto& node : *root->children)
@@ -59,7 +39,7 @@ namespace ofl
                         throw executor_exception(MSG("Memory allocation error."));
 
                     // Assign value to data
-                    setValue(type_it, variation_it, ptr, value->c_str());
+                    (*type_it->second.assign)(type_it, variation_it, ptr, (void *) value->c_str());
 
                     // Save variable
                     auto new_it = variables.emplace(*name, Variable{*type, ptr});
@@ -78,25 +58,11 @@ namespace ofl
                     // Check for language functions
                     if(*name == "print")
                     {
-                        auto type = types.find(it->second.type.type);
-                        auto variation = type->second.GetVariation(it->second.type.variation);
+                        auto type_it = types.find(it->second.type.type);
+                        auto variation_it = type_it->second.GetVariation(it->second.type.variation);
                         
-                        if(type->first == "int")
-                        {
-                            if(variation->second.size == 4)
-                                std::cout << *(int32_t*) it->second.value << std::endl;
-                            else if(variation->second.size == 8)
-                                std::cout << *(int64_t*) it->second.value << std::endl;
-                        }
-                        else if(type->first == "dec")
-                        {
-                            if(variation->second.size == 4)
-                                std::cout << *(float*) it->second.value << std::endl;
-                            else if(variation->second.size == 8)
-                                std::cout << *(double*) it->second.value << std::endl;
-                        }
-                        else
-                            throw executor_exception(MSG("Cannont print type: " + type->first));
+                        // Call types print function
+                        (*type_it->second.print)(type_it, variation_it, it->second.value);
                         break;
                     }
 

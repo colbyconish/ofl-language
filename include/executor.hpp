@@ -34,7 +34,6 @@ namespace ofl
     class Executor
     {
     public:
-        static void setValue(TypeMap::iterator &type, VariationMap::iterator &variation, void *ptr, const char *value);
         Executor();
         ~Executor();
 
@@ -43,26 +42,57 @@ namespace ofl
         std::map<std::string, Variable> variables;
         TypeMap types = 
         {
-            {"int", 
+            {
+                "int", 
                 {
                     "int",
                     "32",
                     {
-                        {"32", 4},
-                        {"64", 8}
+                        {"32", sizeof(int32_t)},
+                        {"64", sizeof(int64_t)}
                     },
-                    {TokenType::Literal}
+                    {TokenType::NumberLiteral},
+                    &assign_integer,
+                    &print_integer
                 }
             },
-            {"dec", 
+            {
+                "dec", 
                 {
                     "dec",
                     "32",
                     {
-                        {"32", 4},
-                        {"64", 8}
+                        {"32", sizeof(float)},
+                        {"64", sizeof(double)}
                     },
-                    {TokenType::Literal}
+                    {TokenType::NumberLiteral},
+                    &assign_decimal,
+                    &print_decimal
+                }
+            },
+            {
+                "bin", 
+                {
+                    "bool",
+                    "default",
+                    {
+                        {"default", sizeof(int8_t)}
+                    },
+                    {TokenType::Keyword, TokenType::NumberLiteral},
+                    &assign_boolean,
+                    &print_boolean
+                }
+            },
+            {
+                "str", 
+                {
+                    "str",
+                    "default",
+                    {
+                        {"default", sizeof(void*)},
+                    },
+                    {TokenType::StringLiteral},
+                    &assign_string
                 }
             }
         };

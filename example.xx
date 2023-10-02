@@ -1,5 +1,15 @@
-int v1 = 22;
-dec:32 v2 = 915;
+str 
+outside 
+= 
+"global"
+;
 
-print v1;
-print v2;
+{
+    str string = "one";
+}
+{
+    str string = "two";
+}
+{
+    str string = "three";
+}

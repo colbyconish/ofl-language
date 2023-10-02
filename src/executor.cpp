@@ -10,15 +10,28 @@ namespace ofl
 
     Executor::~Executor()
     {
+        // Destroy all globally scoped variables
+        for(auto& var : _variables)
+        {
+            auto type_it = types.find(var.second.type.type);
+            auto variation_it = type_it->second.GetVariation(var.second.type.variation); 
 
+            //call destructor
+            type_it->second.destruct(type_it, variation_it, var.second.value);
+        }
     }
 
-    bool Executor::Execute(Node* root)
+    bool Executor::Execute(Node* root, bool original)
     {
+        VariableList scope = VariableList();
+
         for(auto& node : *root->children)
         {
             switch(node.type)
             {
+                case NodeType::Sequence:
+                    Execute(&node, false);
+                    break;
                 case NodeType::Declaration:
                 {
                     TypeInstance *type = (TypeInstance *) (*node.children)[0].data;
@@ -26,9 +39,9 @@ namespace ofl
                     std::string *value = (std::string *) (*node.children)[2].data;
                     
                     // Check if variable already exists
-                    auto it = variables.find(*name);
-                    if(it != variables.end())
-                        throw executor_exception(MSG("Variable already declared:" + *name));
+                    auto it = _variables.find(*name);
+                    if(it != _variables.end())
+                        throw executor_exception(MSG("Variable already declared: " + *name));
 
                     auto type_it = types.find(type->type);
                     auto variation_it = type_it->second.GetVariation(type->variation);
@@ -41,8 +54,9 @@ namespace ofl
                     // Assign value to data
                     (*type_it->second.assign)(type_it, variation_it, ptr, (void *) value->c_str());
 
-                    // Save variable
-                    variables.emplace(*name, Variable{*type, ptr});
+                    // Save variable and add to scope
+                    _variables.emplace(*name, Variable{*type, ptr});
+                    scope.insert(*name);
                     break;
                 }
                 case NodeType::Invocation:
@@ -51,8 +65,8 @@ namespace ofl
                     std::string *value = (std::string *) (*node.children)[1].data;
 
                     // Chack for variable
-                    auto it = variables.find(*value);
-                    if(it == variables.end())
+                    auto it = _variables.find(*value);
+                    if(it == _variables.end())
                         throw executor_exception(MSG("Undefined identifier: " + *value));
 
                     // Check for language functions
@@ -76,6 +90,27 @@ namespace ofl
             }
         }
 
+        if(!original)
+        {
+            size_t total_size = 0;
+            for(auto& name : scope)
+            {
+                auto& var = _variables.at(name);
+                auto type_it = types.find(var.type.type);
+                auto variation_it = type_it->second.GetVariation(var.type.variation); 
+
+                //call destructor
+                type_it->second.destruct(type_it, variation_it, var.value);
+
+                total_size += variation_it->second.size;
+
+                // Remove variable 
+                _variables.erase(name);
+            }
+
+            _storage.Deallocate(total_size);
+        }
+        
         return true;
     }
 
@@ -117,5 +152,13 @@ namespace ofl
         void* temp = start;
         *((size_t*)&start) += size;
         return temp;
+    }
+
+    void Memory::Deallocate(size_t size)
+    {
+        if(start == nullptr) return;
+        if((size_t) start - size < (size_t)data) return;
+
+        *((size_t*)&start) -= size;
     }
 }

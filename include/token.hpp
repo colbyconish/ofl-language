@@ -11,9 +11,6 @@ namespace ofl
 {
     typedef uint64_t Op;
 
-    static const Op EQUALS_OP = 0x3D;
-    static const Op COLON_OP = 0x3A;
-
     struct Token;
     typedef std::vector<Token> TokenList;
 
@@ -126,6 +123,7 @@ namespace ofl
         {
             if(type == TokenType::Unknown || type == TokenType::ENDOFFILE) return;
             if(type == TokenType::Operator || type == TokenType::Delemiter) return;
+            if(type == TokenType::Curly) return;
 
             if((type == TokenType::Identifier || type == TokenType::NumberLiteral 
             || type == TokenType::Keyword || type == TokenType::StringLiteral) && data != nullptr)

@@ -41,6 +41,11 @@ namespace ofl
         Close();
     }
 
+    bool Parser::Scoped()
+    {
+        return _scopes > 0;
+    }
+
     bool Parser::Open(const char* path)
     {
         _stream.open(path);
@@ -82,6 +87,9 @@ namespace ofl
         static std::string buffer;
         for(auto& c : line)
         {
+            if(_mode !=  ReadMode::String && charIs(CharType::Curly, c))
+                _scopes += (charIs(CharType::LeftCurly, c) ? 1 : -1);
+
             switch(_mode)
             {
                 case ReadMode::Letter:

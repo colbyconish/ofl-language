@@ -22,18 +22,15 @@ namespace ofl
     {
     public:
         static size_t checkForAssignment(TypeMap::iterator&, TokenList&, Node*, size_t);
+        static size_t checkForFunctionCall(const std::string&, TokenList&, Node*, size_t);
+        size_t checkForSequence(Node*, TypeMap&, size_t, bool = false);
 
         Lexer();
         Lexer(Lexer&) = delete;
         Lexer(Lexer&&) = delete;
         
         Node Lex(TypeMap&);
-        size_t checkForFunctionCall(const std::string&, TokenList&, Node*, size_t);
 
         TokenList _tokens;
-
-    private:
-    
-        size_t _pos = 0;
     };
 }

@@ -42,7 +42,7 @@ namespace ofl
         {
             // Verify that the operator is the variator operator ':'
             auto op = tokens[pos+count].Data();
-            if(op != (void*) COLON_OP)
+            if(op != (void*) Character::COLON)
                 throw lexer_exception(MSG("Expected ':' but found: '" + (char*) &op + "'"));
 
             // Check for variation string
@@ -69,7 +69,7 @@ namespace ofl
         auto op = tokens[pos+count].Data();
         if(tokens[pos+count].Type() != TokenType::Operator)
             throw lexer_exception(MSG("Expected Operator but found: " + tokens[pos+count]));
-        else if(op != (void*) EQUALS_OP)
+        else if(op != (void*) Character::EQUALS)
             throw lexer_exception(MSG("Expected '=' but found: '" + (char*) &op + "'"));
         count++;
         
@@ -105,11 +105,20 @@ namespace ofl
     Node Lexer::Lex(TypeMap& types)
     {
         Node ast = Node(NodeType::Sequence);
+        checkForSequence(&ast, types, 0, true);
 
-        for(size_t i = 0;i < _tokens.size();i++)
+        _tokens.clear();
+        return std::move(ast);
+    }
+
+    size_t Lexer::checkForSequence(Node* parent, TypeMap& types, size_t pos, bool original)
+    {
+        if(!original)
+            parent = &parent->children->emplace_back(NodeType::Sequence);
+
+        size_t i;
+        for(i = pos+(int)(!original);i < _tokens.size();i++)
         {
-            _pos++;
-
             auto& token = _tokens[i];
             switch(token.Type())
             {
@@ -119,7 +128,7 @@ namespace ofl
                     auto it_t = types.find(*((std::string*) token.Data()));
                     if(it_t != types.end())
                     {
-                        i += checkForAssignment(it_t, _tokens, &ast, i);
+                        i += checkForAssignment(it_t, _tokens, parent, i);
                         continue;
                     }
 
@@ -129,21 +138,35 @@ namespace ofl
                     break;
                 }
                 case TokenType::Keyword:
-                {
                     // Check if keyword is function
-                    i += checkForFunctionCall(*(std::string*) token.Data(), _tokens, &ast, i);
+                    i += checkForFunctionCall(*(std::string*) token.Data(), _tokens, parent, i);
+                    break;
+                case TokenType::Curly:
+                {
+                    void *ptr = token.Data();
+                    char c = *((char*) &ptr);
+                    if (c == Character::RIGHTCURLY)
+                    {
+                        if(original)
+                            throw lexer_exception(MSG("Unexpected token: "), token);
+                        else
+                            return i - pos;
+                    }
+                    else
+                        i += checkForSequence(parent, types, i);
                     break;
                 }
                 default:
                     if(token.Type() == TokenType::ENDOFFILE)
-                        return ast;
+                    {
+                        if(!original) throw lexer_exception(MSG("Expected '}' found: " + token));
+                    }
                     else
                         throw lexer_exception(MSG("Unrecognized token: " + token));
                     break;
             }
         }
 
-        _tokens.clear();
-        return std::move(ast);
+        return i - pos;
     }
 }

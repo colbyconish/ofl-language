@@ -38,13 +38,15 @@ namespace ofl
         void PushLiteral(TokenList& list, std::string& buffer);
         void PushOperator(TokenList& list, std::string& buffer);
 
+        bool Scoped();
+
     private:
         static std::set<std::string> KEYWORDS;
 
         ReadMode _mode = ReadMode::Letter;
         std::ifstream _stream;
 
-        size_t _pos;
+        size_t _scopes = 0;
         bool _ready;
     };
 }

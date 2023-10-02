@@ -22,7 +22,8 @@ namespace ofl
         Memory(Memory&) = delete;
         Memory(Memory&&);
         ~Memory();
-        void* Allocate(size_t size);
+        void *Allocate(size_t size);
+        void Deallocate(size_t size);
     };
 
     struct Variable
@@ -31,15 +32,18 @@ namespace ofl
         void *value;
     };
 
+    typedef std::set<std::string> VariableList;
+    typedef std::map<std::string, Variable > VariableMap;
+    typedef std::vector<VariableList > ScopeList;
+
     class Executor
     {
     public:
         Executor();
         ~Executor();
 
-        bool Execute(Node* root);
+        bool Execute(Node* root, bool original = true);
 
-        std::map<std::string, Variable> variables;
         TypeMap types = 
         {
             {
@@ -53,6 +57,7 @@ namespace ofl
                     },
                     {TokenType::NumberLiteral},
                     &assign_integer,
+                    &destruct_default,
                     &print_integer
                 }
             },
@@ -67,6 +72,7 @@ namespace ofl
                     },
                     {TokenType::NumberLiteral},
                     &assign_decimal,
+                    &destruct_default,
                     &print_decimal
                 }
             },
@@ -80,6 +86,7 @@ namespace ofl
                     },
                     {TokenType::Keyword, TokenType::NumberLiteral},
                     &assign_boolean,
+                    &destruct_default,
                     &print_boolean
                 }
             },
@@ -93,12 +100,15 @@ namespace ofl
                     },
                     {TokenType::StringLiteral},
                     &assign_string,
+                    &destruct_string,
                     &print_string
                 }
             }
         };
 
     private:
+        ScopeList _scopes;
+        VariableMap _variables;
         Memory _storage = Memory();
     };
 }

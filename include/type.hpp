@@ -18,6 +18,7 @@ namespace ofl
     typedef TypeMap::iterator TypeMap_it;
 
     typedef void (*AssignmentFunction)(TypeMap_it&, VariationMap_it&, void *, void *);
+    typedef void (*DestructionFunction)(TypeMap_it&, VariationMap_it&, void *);
     typedef void (*PrintFunction)(TypeMap_it&, VariationMap_it&, void *);
 
     struct VariationInfo
@@ -31,12 +32,14 @@ namespace ofl
 
     inline void print_default(TypeMap_it& type, VariationMap_it& variation, void *ptr);
     inline void assign_default(TypeMap_it& type, VariationMap_it& variation, void *ptr, void *value);
+    inline void destruct_default(TypeMap_it& type, VariationMap_it& variation, void *ptr);
 
     struct TypeInfo
     {
         TypeInfo(const char* name, const char *dv, VariationMap info, std::set<TokenType> set,
-                AssignmentFunction assign = &assign_default, PrintFunction print = &print_default)
-            :variations(info), accepts(set), assign(assign), print(print)
+                AssignmentFunction assign = &assign_default, DestructionFunction destruct = &destruct_default,
+                PrintFunction print = &print_default)
+            :variations(info), accepts(set), assign(assign), destruct(destruct), print(print)
         {
             // Verify map is at least 1 large
             if(variations.size() < 1)
@@ -72,6 +75,7 @@ namespace ofl
 
         VariationMap_it DefaultVariation() { return variations.find(default_variation); }
 
+        DestructionFunction destruct;
         AssignmentFunction assign;
         PrintFunction print;
     private:
@@ -171,5 +175,16 @@ namespace ofl
     inline void print_default(TypeMap_it& type, VariationMap_it& variation, void *ptr)
     {
         std::cout << "<" << type->first << ":" << variation->first << "@" << ptr << ">" << std::endl;
+    }
+
+    inline void destruct_string(TypeMap_it& type, VariationMap_it& variation, void *ptr)
+    {
+        std::cout << "string destroyed: " << (*((std::string**)ptr))->c_str() << std::endl;
+        delete *((std::string**)ptr);
+    }
+
+    inline void destruct_default(TypeMap_it& type, VariationMap_it& variation, void *ptr)
+    {
+
     }
 }

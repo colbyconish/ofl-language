@@ -67,13 +67,19 @@ int Execute(Parser& parser)
         printf("\n");
         */
 
-        // Continue if delemiter wasnt found
+        // Continue if no tokens were found
         if(lexer._tokens.size() == 0)
             continue;
 
         auto& last_token = lexer._tokens[lexer._tokens.size()-1];
-        if(last_token.Type() != TokenType::Delemiter && last_token.Type() != TokenType::ENDOFFILE)
-            continue;
+        if(last_token.Type() != TokenType::ENDOFFILE)
+        {
+            if(parser.Scoped())
+                continue;
+
+            if(last_token.Type() != TokenType::Delemiter && last_token.Type() != TokenType::Curly)
+                continue;
+        }
 
         // Turn tokens into an AST
         Node root = lexer.Lex(executor.types);

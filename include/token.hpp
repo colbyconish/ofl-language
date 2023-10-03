@@ -126,10 +126,11 @@ namespace ofl
             if(type == TokenType::Curly) return;
 
             if((type == TokenType::Identifier || type == TokenType::NumberLiteral 
-            || type == TokenType::Keyword || type == TokenType::StringLiteral) && data != nullptr)
+             || type == TokenType::Keyword || type == TokenType::StringLiteral)
+                && data != nullptr)
                 delete (std::string*) data;
             else
-                std::cout << "Memory leak possible with token type: " << (int)type << std::endl;
+                std::cout << "Memory leak possible with token type: " << ofl::to_string(type) << std::endl;
         }
 
         const char *type_name()
@@ -141,6 +142,8 @@ namespace ofl
         {
             std::string temp;
             temp += ofl::to_string(type);
+            temp += ":";
+            temp += std::to_string((int)type);
             temp += " (";
 
             if((type == TokenType::Identifier || type == TokenType::NumberLiteral 

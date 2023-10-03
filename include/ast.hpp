@@ -18,7 +18,8 @@ namespace ofl
         Literal,
         Equatiuon,
         Invocation,
-        Arguments
+        Arguments,
+        Repeat
     };
 
     struct Node
@@ -35,13 +36,16 @@ namespace ofl
         {
             if(children != nullptr) delete children;
             if(data != nullptr) 
+            {
                 if(type == NodeType::Literal || type == NodeType::Variable)
                     delete (std::string *) data;
                 else if(type == NodeType::Type)
                     delete (TypeInstance *) data;
+                else if(type == NodeType::Sequence)
+                    delete (Node *) data;
                 else
-                    std::cout << "Memory leak possible with token type: " << (int)type << std::endl;
-
+                    std::cout << "Memory leak possible with node type: " << (int)type << std::endl;
+            }
         }
     };
 

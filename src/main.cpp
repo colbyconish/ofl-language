@@ -61,12 +61,6 @@ int Execute(Parser& parser)
     Executor executor = Executor();
     while(parser.ParseLine(lexer._tokens))
     {
-        /*
-        for(auto& token : lexer._tokens)
-            printf("%s ", token.to_string().c_str());
-        printf("\n");
-        */
-
         // Continue if no tokens were found
         if(lexer._tokens.size() == 0)
             continue;
@@ -80,7 +74,11 @@ int Execute(Parser& parser)
             if(last_token.Type() != TokenType::Delemiter && last_token.Type() != TokenType::Curly)
                 continue;
         }
-
+        /*
+        for(auto& token : lexer._tokens)
+            printf("%s ", token.to_string().c_str());
+        printf("\n");
+        */
         // Turn tokens into an AST
         Node root = lexer.Lex(executor.types);
 

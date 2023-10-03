@@ -4,6 +4,7 @@
 #include <set>
 
 #include "ast.hpp"
+#include "char.hpp"
 #include "token.hpp"
 #include "type.hpp"
 #include "type.hpp"
@@ -22,6 +23,7 @@ namespace ofl
     {
     public:
         static size_t checkForAssignment(TypeMap::iterator&, TokenList&, Node*, size_t);
+        size_t checkForLoop(const std::string&, TypeMap&, TokenList&, Node*, size_t);
         static size_t checkForFunctionCall(const std::string&, TokenList&, Node*, size_t);
         size_t checkForSequence(Node*, TypeMap&, size_t, bool = false);
 

@@ -10,6 +10,7 @@ namespace ofl
         "set",
         "unset",
         "if",
+        "repeat",
         "for",
         "while",
         "break",

@@ -103,7 +103,19 @@ namespace ofl
                     &destruct_string,
                     &print_string
                 }
+            },
+            {
+                "nil",
+                {
+                    "nil",
+                    "default",
+                    {
+                        {"default", 0},
+                    },
+                    {}
+                }
             }
+
         };
 
     private:

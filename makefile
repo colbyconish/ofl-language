@@ -31,7 +31,6 @@ override TEST_TARGET := $(BUILD_DIR)/$(TEST_PRE)$(EXE)
 override DEPS := $(OBJS:.o=.d)
 
 $(TARGET): $(OBJS)
-	echo $(OBJS)
 	@mkdir -p $(@D)
 	$(CXX) $(LDLIBS) $(LDFLAGS) $^ -o $@
 

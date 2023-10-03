@@ -174,12 +174,14 @@ namespace ofl
 
     inline void print_default(TypeMap_it& type, VariationMap_it& variation, void *ptr)
     {
-        std::cout << "<" << type->first << ":" << variation->first << "@" << ptr << ">" << std::endl;
+        if(ptr == nullptr)
+            std::cout << type->first << std::endl;
+        else
+            std::cout << "<" << type->first << ":" << variation->first << "@" << ptr << ">" << std::endl;
     }
 
     inline void destruct_string(TypeMap_it& type, VariationMap_it& variation, void *ptr)
     {
-        std::cout << "string destroyed: " << (*((std::string**)ptr))->c_str() << std::endl;
         delete *((std::string**)ptr);
     }
 

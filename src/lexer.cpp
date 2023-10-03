@@ -4,6 +4,35 @@ namespace ofl
 {
     Lexer::Lexer() { }
 
+    size_t Lexer::checkForLoop(const std::string& name, TypeMap& types, TokenList& tokens, Node* parent, size_t pos)
+    {
+        size_t count = 1;
+        std::string *mult;
+
+        if(tokens[pos+count].Type() != TokenType::NumberLiteral)
+            throw executor_exception(MSG("Expected '" + to_string(TokenType::NumberLiteral) + "' but found: " + tokens[pos+count]));
+        else 
+            mult = (std::string *)tokens[pos+count].Data();
+        count++;
+
+        void *ch = tokens[pos+count].Data();
+        if(tokens[pos+count].Type() != TokenType::Curly)
+            throw executor_exception(MSG("Expected '" + to_string(TokenType::Curly) + "' but found: " + tokens[pos+count]));
+        else if(*((char*) &ch) != Character::LEFTCURLY)
+            throw executor_exception(MSG("Expected '{' but found: " + *((char*) &ch)));
+
+        // Create repeat node
+        auto& node = parent->children->emplace_back(NodeType::Repeat);
+
+        auto& repeat_mult = node.children->emplace_back(NodeType::Literal);
+        repeat_mult.data = new std::string(*mult);
+
+        auto& repeat_body = node.children->emplace_back(NodeType::Sequence);
+        count += checkForSequence(&repeat_body, types, pos+count);
+
+        return count;
+    }
+
     size_t Lexer::checkForFunctionCall(const std::string &name, TokenList &tokens, Node* parent, size_t pos)
     {
         size_t count = 2;
@@ -14,7 +43,7 @@ namespace ofl
         void* ch = tokens[pos+2].Data();
         if(tokens[pos+2].Type() != TokenType::Delemiter)
             throw lexer_exception(MSG("Expected Delemiter but found: " + tokens[pos+2]));
-        else if(*((char*) &ch) != ';')
+        else if(*((char*) &ch) != Character::SEMICOLON)
             throw lexer_exception(MSG("Expected ';' but found: '" + (char*) (&ch) + "'"));
 
         // Create invocation node
@@ -31,6 +60,9 @@ namespace ofl
 
     size_t Lexer::checkForAssignment(TypeMap::iterator &type_it, TokenList &tokens, Node* parent, size_t pos)
     {
+        if(type_it->first == "nil")
+            throw lexer_exception("Can not declare a nil value: ", tokens[pos]);
+
         std::string variation = type_it->second.DefaultVariation()->first;
         std::string name;
         Token* value;
@@ -84,7 +116,7 @@ namespace ofl
         void* ch = tokens[pos+count].Data();
         if(tokens[pos+count].Type() != TokenType::Delemiter)
             throw lexer_exception(MSG("Expected Delemiter but found: " + tokens[pos+count]));
-        else if(*((char*) &ch) != ';')
+        else if(*((char*) &ch) != Character::SEMICOLON)
             throw lexer_exception(MSG("Expected ';' but found: '" + (char*) &ch + "'"));
 
         // Create assignment node
@@ -138,6 +170,14 @@ namespace ofl
                     break;
                 }
                 case TokenType::Keyword:
+
+                    // Check for repeat statement
+                    if(*(std::string*) token.Data() == "repeat")
+                    {
+                        i += checkForLoop(*(std::string*) token.Data(), types, _tokens, parent, i);
+                        break;
+                    }
+
                     // Check if keyword is function
                     i += checkForFunctionCall(*(std::string*) token.Data(), _tokens, parent, i);
                     break;

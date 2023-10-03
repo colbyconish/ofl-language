@@ -32,6 +32,15 @@ namespace ofl
                 case NodeType::Sequence:
                     Execute(&node, false);
                     break;
+                case NodeType::Repeat:
+                {
+                    std::string *mult = (std::string *) (*node.children)[0].data;
+                    Node *body = &(*node.children)[1];
+
+                    for(uint64_t i = 0;i < _atoi64(mult->c_str());i++)
+                        Execute(body, false);
+                    break;
+                }
                 case NodeType::Declaration:
                 {
                     TypeInstance *type = (TypeInstance *) (*node.children)[0].data;
@@ -64,21 +73,35 @@ namespace ofl
                     std::string *name = (std::string *) (*node.children)[0].data;
                     std::string *value = (std::string *) (*node.children)[1].data;
 
-                    // Chack for variable
                     auto it = _variables.find(*value);
-                    if(it == _variables.end())
-                        throw executor_exception(MSG("Undefined identifier: " + *value));
 
-                    // Check for language functions
+                    // Check for print function
                     if(*name == "print")
                     {
-                        auto type_it = types.find(it->second.type.type);
-                        auto variation_it = type_it->second.GetVariation(it->second.type.variation);
-                        
-                        // Call types print function
-                        (*type_it->second.print)(type_it, variation_it, it->second.value);
+                        // Check if value is a nil value
+                        if(it == _variables.end())
+                        {
+                            auto nil_it = types.find("nil");
+                            auto var_it = nil_it->second.DefaultVariation();
+
+                            // Calls nil's print function
+                            (*nil_it->second.print)(nil_it, var_it, nullptr);
+                        } 
+                        else
+                        {
+                            auto type_it = types.find(it->second.type.type);
+                            auto variation_it = type_it->second.GetVariation(it->second.type.variation);
+                            
+                            // Call type's print function
+                            (*type_it->second.print)(type_it, variation_it, it->second.value);
+                        }
+
                         break;
                     }
+
+                    // Chack for variable
+                    if(it == _variables.end())
+                        throw executor_exception(MSG("Undefined identifier: " + *value));
 
                     // Check for user defined functions
 

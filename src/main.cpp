@@ -71,7 +71,8 @@ int Execute(Parser& parser)
             if(parser.Scoped())
                 continue;
 
-            if(last_token.Type() != TokenType::Delemiter && last_token.Type() != TokenType::Curly)
+            if(!(last_token.Type() == TokenType::Delemiter && last_token.Data() == (void*) Character::SEMICOLON)
+            && last_token.Type() != TokenType::Curly)
                 continue;
         }
         /*

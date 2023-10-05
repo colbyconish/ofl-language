@@ -1,6 +1,10 @@
-bin test;
+str test = "one",
+    test2 = "two", 
+    test3 = "three";
 
 repeat 5 
 {
     print test;
+    print test2;
+    print test3;
 }

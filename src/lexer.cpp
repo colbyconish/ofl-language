@@ -102,11 +102,10 @@ namespace ofl
         auto op = tokens[pos+count].Data();
         if(tokens[pos+count].Type() == TokenType::Delemiter)
         {
-            if(op == (void*) Character::SEMICOLON)
-                full_assign = false;
-            else if(op == (void*) Character::COMMA)
-                throw lexer_exception("Recursive assignment not implemented.");
-            else
+            full_assign = false;
+            if(op == (void*) Character::COMMA)
+                count += checkForAssignment(type_it, tokens, parent, pos+count);
+            else if(op != (void*) Character::SEMICOLON)
                 throw lexer_exception(MSG("Expected ';' or ',' but found: '" + (char*) &op + "'"));
         }
         else if(tokens[pos+count].Type() != TokenType::Operator)
@@ -124,12 +123,14 @@ namespace ofl
                 throw lexer_exception(MSG("Expected '" + type_it->second.AcceptString() + "' but found: " + tokens[pos+count]));
             count++;
 
-            // Check for semicolon
+            // Check for semicolon or comma
             void* ch = tokens[pos+count].Data();
             if(tokens[pos+count].Type() != TokenType::Delemiter)
                 throw lexer_exception(MSG("Expected Delemiter but found: " + tokens[pos+count]));
+            else if(*((char*) &ch) == Character::COMMA)
+                count += checkForAssignment(type_it, tokens, parent, pos+count);
             else if(*((char*) &ch) != Character::SEMICOLON)
-                throw lexer_exception(MSG("Expected ';' but found: '" + (char*) &ch + "'"));
+                throw lexer_exception(MSG("Expected ';' or ',' but found: '" + (char*) &ch + "'"));
         }
         
         // Create assignment node

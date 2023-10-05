@@ -95,7 +95,7 @@ namespace ofl
         if(tokens[pos+count].Type() == TokenType::Identifier)
             name = *((std::string*) tokens[pos+count].Data());
         else
-            throw lexer_exception(MSG("Expected indentifier or operator but found: "), tokens[pos+count]);
+            throw lexer_exception(MSG("Expected indentifier: "), tokens[pos+count]);
         count++;
 
         // Check for assignment operator or delimeter
@@ -109,7 +109,7 @@ namespace ofl
                 throw lexer_exception(MSG("Expected ';' or ',' but found: '" + (char*) &op + "'"));
         }
         else if(tokens[pos+count].Type() != TokenType::Operator)
-            throw lexer_exception(MSG("Expected Operator but found: " + tokens[pos+count]));
+            throw lexer_exception(MSG("Expected Operator or delemiter but found: " + tokens[pos+count]));
         else if(op != (void*) Character::EQUALS)
             throw lexer_exception(MSG("Expected '=' but found: '" + (char*) &op + "'"));
         count++;

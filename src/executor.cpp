@@ -61,7 +61,8 @@ namespace ofl
                         throw executor_exception(MSG("Memory allocation error."));
 
                     // Assign value to data
-                    (*type_it->second.assign)(type_it, variation_it, ptr, (void *) value->c_str());
+                    void *data = value == nullptr ? nullptr : (void *) value->c_str();
+                    (*type_it->second.assign)(type_it, variation_it, ptr, data);
 
                     // Save variable and add to scope
                     _variables.emplace(*name, Variable{*type, ptr});

@@ -45,8 +45,9 @@ namespace ofl
             "Delemiter",
             "ENDOFFILE"
         };
+        uint32_t size = sizeof(names)/sizeof(names[0]);
 
-        return names[(int) type];
+        return names[(int) type < size ? (int) type : 0];
     }
 
     inline TokenType tokenType(char c)

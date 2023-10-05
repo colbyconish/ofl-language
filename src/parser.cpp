@@ -212,8 +212,7 @@ namespace ofl
                 case ReadMode::String:
                     if(charIs(CharType::DoubleQuote, c))
                     {
-                        if(buffer.size() > 0)
-                            PushString(list, buffer);
+                        PushString(list, buffer);
                         _mode = ReadMode::Letter;
                     }
                     else if(charIs(CharType::NewLine, c))

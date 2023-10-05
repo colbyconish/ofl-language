@@ -62,7 +62,8 @@ namespace ofl
     {
         if(type_it->first == "nil")
             throw lexer_exception("Can not declare a nil value: ", tokens[pos]);
-
+        
+        bool full_assign = true;
         std::string variation = type_it->second.DefaultVariation()->first;
         std::string name;
         Token* value;
@@ -97,28 +98,40 @@ namespace ofl
             throw lexer_exception(MSG("Expected indentifier or operator but found: "), tokens[pos+count]);
         count++;
 
-        // Check for assignment operator
+        // Check for assignment operator or delimeter
         auto op = tokens[pos+count].Data();
-        if(tokens[pos+count].Type() != TokenType::Operator)
+        if(tokens[pos+count].Type() == TokenType::Delemiter)
+        {
+            if(op == (void*) Character::SEMICOLON)
+                full_assign = false;
+            else if(op == (void*) Character::COMMA)
+                throw lexer_exception("Recursive assignment not implemented.");
+            else
+                throw lexer_exception(MSG("Expected ';' or ',' but found: '" + (char*) &op + "'"));
+        }
+        else if(tokens[pos+count].Type() != TokenType::Operator)
             throw lexer_exception(MSG("Expected Operator but found: " + tokens[pos+count]));
         else if(op != (void*) Character::EQUALS)
             throw lexer_exception(MSG("Expected '=' but found: '" + (char*) &op + "'"));
         count++;
         
-        // Check for value
-        if(type_it->second.Accepts(tokens[pos+count].Type()))
-            value = &tokens[pos+count];
-        else
-            throw lexer_exception(MSG("Expected '" + type_it->second.AcceptString() + "' but found: " + tokens[pos+count]));
-        count++;
+        if(full_assign)
+        {
+            // Check for value
+            if(type_it->second.Accepts(tokens[pos+count].Type()))
+                value = &tokens[pos+count];
+            else
+                throw lexer_exception(MSG("Expected '" + type_it->second.AcceptString() + "' but found: " + tokens[pos+count]));
+            count++;
 
-        // Check for semicolon
-        void* ch = tokens[pos+count].Data();
-        if(tokens[pos+count].Type() != TokenType::Delemiter)
-            throw lexer_exception(MSG("Expected Delemiter but found: " + tokens[pos+count]));
-        else if(*((char*) &ch) != Character::SEMICOLON)
-            throw lexer_exception(MSG("Expected ';' but found: '" + (char*) &ch + "'"));
-
+            // Check for semicolon
+            void* ch = tokens[pos+count].Data();
+            if(tokens[pos+count].Type() != TokenType::Delemiter)
+                throw lexer_exception(MSG("Expected Delemiter but found: " + tokens[pos+count]));
+            else if(*((char*) &ch) != Character::SEMICOLON)
+                throw lexer_exception(MSG("Expected ';' but found: '" + (char*) &ch + "'"));
+        }
+        
         // Create assignment node
         auto& node = parent->children->emplace_back(NodeType::Declaration);
 
@@ -129,7 +142,7 @@ namespace ofl
         var.data = new std::string(name);
 
         auto& val = node.children->emplace_back(NodeType::Literal);
-        val.data = new std::string(*(std::string*) value->Data());
+        val.data = full_assign ? new std::string(*(std::string*) value->Data()) : nullptr;
         
         return count;
     }

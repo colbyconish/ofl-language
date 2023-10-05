@@ -6,6 +6,11 @@
 #include "exception.hpp"
 #include "token.hpp"
 
+#define DEFAULT_BOOLEAN_VALUE -1
+#define DEFAULT_INTEGER_VALUE 0
+#define DEFAULT_DECIMAL_VALUE 0
+#define DEFAULT_STRING_VALUE ""
+
 namespace ofl
 {
     struct VariationInfo;
@@ -98,6 +103,11 @@ namespace ofl
 
     inline void assign_boolean(TypeMap_it&, VariationMap_it&, void *ptr, void *value)
     {
+        if(value == nullptr)
+        {
+            *((int8_t*)ptr) = DEFAULT_BOOLEAN_VALUE;
+            return;
+        }
         /**
         * -1 = false
         * -2 = no
@@ -118,23 +128,25 @@ namespace ofl
 
     inline void assign_integer(TypeMap_it& type, VariationMap_it& variation, void *ptr, void *value)
     {
-         if(variation->second.size == 4)
-            *((int32_t*)ptr) = atoi((const char *) value);
+        if(variation->second.size == 4)
+            *((int32_t*)ptr) = value == nullptr ? DEFAULT_INTEGER_VALUE : atoi((const char *) value);
         else if(variation->second.size == 8)
-            *((int64_t*)ptr) = _atoi64((const char *) value);
+            *((int64_t*)ptr) = value == nullptr ? DEFAULT_INTEGER_VALUE : _atoi64((const char *) value);
     }
     
     inline void assign_decimal(TypeMap_it& type, VariationMap_it& variation, void *ptr, void *value)
     {
-         if(variation->second.size == 4)
-            *((float*)ptr) = (float) atof((const char *) value);
+        if(variation->second.size == 4)
+            *((float*)ptr) = value == nullptr ? DEFAULT_DECIMAL_VALUE : (float) atof((const char *) value);
         else if(variation->second.size == 8)
-            *((double*)ptr) = atof((const char *) value);
+            *((double*)ptr) = value == nullptr ? DEFAULT_DECIMAL_VALUE : atof((const char *) value);
     }
 
     inline void assign_string(TypeMap_it& type, VariationMap_it& variation, void *ptr, void *value)
-    {
-        *((std::string**)ptr) = new std::string((const char *) value);
+    {   if(value == nullptr)
+            *((std::string**)ptr) = new std::string(DEFAULT_STRING_VALUE);
+        else
+            *((std::string**)ptr) = new std::string((const char *) value);        
     }
 
     inline void assign_default(TypeMap_it& type, VariationMap_it& variation, void *ptr, void *value)

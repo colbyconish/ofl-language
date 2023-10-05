@@ -1,15 +1,6 @@
-str 
-outside 
-= 
-"global"
-;
+bin test;
 
+repeat 5 
 {
-    str string = "one";
-}
-{
-    str string = "two";
-}
-{
-    str string = "three";
+    print test;
 }
